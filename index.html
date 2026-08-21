@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101A26">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LORIQ Driver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D151E; --card:#16222E; --card2:#1E2E3D; --line:#283B4D;
+  --ink:#EAF1F6; --muted:#8DA3B4;
+  --diesel:#F2A413; --hazard:#E03B4E; --ok:#17A06F;
+  --r:14px; --mono:ui-monospace,"JetBrains Mono",Menlo,monospace;
+  --disp:"Barlow Condensed","Arial Narrow",sans-serif; --body:"Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:520px;margin:0 auto;padding:16px}
+.hdr{background:var(--card);border-bottom:1px solid var(--line);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px}
+.hdr h1{font-family:var(--disp);font-size:24px;letter-spacing:.06em}
+.hdr h1 i{font-style:normal;color:var(--diesel)}
+.hdr .who{margin-left:auto;text-align:right;font-size:12px;color:var(--muted);line-height:1.25}
+.hdr .who b{display:block;color:var(--ink);font-size:13.5px}
+.net{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:20px;border:1px solid var(--line)}
+.net.on{color:var(--ok);border-color:rgba(23,160,111,.4)}
+.net.off{color:var(--diesel);border-color:rgba(242,164,19,.4)}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h2{font-family:var(--disp);font-size:22px;letter-spacing:.03em;font-weight:600;margin-bottom:2px}
+.big{font-family:var(--disp);font-size:44px;font-weight:600;line-height:1}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat span{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:19px;font-weight:600}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:12px;
+  border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:16px;font-weight:600}
+.btn:active{transform:scale(.985)}
+.btn.amber{background:var(--diesel);border-color:var(--diesel);color:#2A1D00}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{padding:11px;font-size:14px;font-weight:500}
+.btn:disabled{opacity:.5}
+
+label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+input,select{width:100%;padding:14px;background:#0E1922;border:1px solid var(--line);border-radius:10px;font-size:19px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums}
+input:focus,select:focus{outline:2px solid var(--diesel);outline-offset:-1px}
+input::placeholder{color:#4E6377}
+.fld{margin-bottom:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;font-family:var(--body)}
+
+.verdict{border-radius:12px;padding:14px;border-left:4px solid var(--muted);background:var(--card2);margin-bottom:14px}
+.verdict.ok{border-left-color:var(--ok)}
+.verdict.warn{border-left-color:var(--diesel)}
+.verdict.bad{border-left-color:var(--hazard)}
+.verdict h3{font-family:var(--disp);font-size:19px;letter-spacing:.04em;margin-bottom:10px;display:flex;gap:8px;align-items:center}
+.verdict ul{margin:10px 0 0 18px;font-size:13.5px;color:#CBD9E3}
+.verdict li{margin-top:4px}
+.bar{height:24px;background:#0E1922;border-radius:5px;position:relative;overflow:hidden;margin-top:10px}
+.bar .band{position:absolute;top:0;bottom:0;background:rgba(23,160,111,.18)}
+.bar .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#5C7285}
+.bar i{position:absolute;top:5px;height:14px;border-radius:2px}
+.bar span{position:absolute;top:4px;font-family:var(--mono);font-size:12px;font-weight:600;line-height:16px}
+
+.shot{display:flex;gap:10px;align-items:center}
+.shot img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.shot .ph{width:64px;height:64px;border-radius:10px;border:1px dashed var(--line);display:flex;align-items:center;
+  justify-content:center;color:var(--muted);font-size:11px;text-align:center}
+input[type=file]{display:none}
+
+.load{border-left:3px solid var(--diesel);padding-left:12px;margin-bottom:14px}
+.load .rt{font-size:17px;font-weight:600}
+.load .mt{font-size:13px;color:var(--muted)}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:20px}
+.p-ok{background:rgba(23,160,111,.16);color:#4ED0A0}
+.p-warn{background:rgba(242,164,19,.16);color:var(--diesel)}
+.p-bad{background:rgba(224,59,78,.16);color:#FF7C8B}
+.meter{height:8px;background:#0E1922;border-radius:20px;overflow:hidden;margin:8px 0}
+.meter i{display:block;height:100%}
+
+.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);
+  display:flex;padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:30}
+.tabs button{flex:1;background:none;border:none;padding:8px 4px;color:var(--muted);font-size:10.5px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-weight:600;letter-spacing:.04em}
+.tabs button.on{color:var(--diesel)}
+.tabs svg{width:22px;height:22px;stroke-width:1.8}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:#fff;color:#101A26;padding:12px 18px;
+  border-radius:10px;font-size:14px;font-weight:600;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.list-item{border-bottom:1px solid var(--line);padding:12px 0;display:flex;gap:12px;align-items:center}
+.list-item:last-child{border-bottom:none}
+.center{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="tabs" id="tabs"></div>
+<script>
+/* ===========================================================================
+   LORIQ Driver — pump-side capture
+   Runs standalone (demo data) or against the LORIQ API.
+   The reconciliation shown here is the same one the office sees; the driver is
+   told the verdict before and after saving, which is the point: visible
+   monitoring stops most losses before anyone has to investigate.
+   =========================================================================== */
+const API_KEY='loriq.api', TOK='loriq.token';
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return this._m?.[k]??null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){(this._m=this._m||{})[k]=v}},
+  del(k){try{localStorage.removeItem(k)}catch(e){delete this._m?.[k]}}
+};
+const S={tab:'today',demo:!store.get(TOK),api:store.get(API_KEY)||'',me:null,truck:null,loads:[],fills:[],queue:[],photo:null,gps:null};
+
+/* ---------- demo dataset so the app opens with no server ---------- */
+function demo(){
+  const now=Date.now(),D=864e5;
+  S.me={name:'Kumaran a/l Selvam',role:'driver',licence:'GDL-771903',score:45,band:'High risk'};
+  S.truck={id:'t2',plate:'WVB 7734',make:'Volvo FH460',tank_l:620,baseline_l100:34.8,odometer:512480};
+  S.loads=[
+    {id:'l1',ref:'L20418',origin:'Port Klang',destination:'Johor Bahru',distance_km:330,cargo:'FMCG pallets',
+     weight_t:28.4,depart_at:new Date(now+4*36e5).toISOString(),status:'planned',fuel_allowance_l:114.8},
+    {id:'l2',ref:'L20422',origin:'Johor Bahru',destination:'Kuantan',distance_km:330,cargo:'Steel coil',
+     weight_t:31,depart_at:new Date(now+D).toISOString(),status:'planned',fuel_allowance_l:114.8}
+  ];
+  S.fills=[
+    {filled_at:new Date(now-3*D).toISOString(),litres:268.4,distance_km:742,consumption_l100:36.2,variance_pct:4,severity:'clean',flags:[]},
+    {filled_at:new Date(now-9*D).toISOString(),litres:311.5,distance_km:698,consumption_l100:44.6,variance_pct:28.2,severity:'crit',
+     flags:[{code:'OVER-DRAW',detail:'+28.2% against 34.8 L/100km'}]},
+    {filled_at:new Date(now-15*D).toISOString(),litres:255.0,distance_km:720,consumption_l100:35.4,variance_pct:1.7,severity:'clean',flags:[]}
+  ];
+  S.lastOdo=511738;
+}
+
+/* ---------- API ---------- */
+async function api(path,opts={}){
+  const r=await fetch(S.api.replace(/\/$/,'')+path,{...opts,
+    headers:{'Content-Type':'application/json',Authorization:'Bearer '+store.get(TOK),...(opts.headers||{})}});
+  if(r.status===401){store.del(TOK);S.demo=true;render();throw new Error('Session expired')}
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error||'Request failed');
+  return d;
+}
+async function loadLive(){
+  const [me,trucks,loads,fills]=await Promise.all([
+    api('/api/auth/me'),api('/api/trucks'),api('/api/trips'),api('/api/fuel?limit=20')]);
+  S.me={name:me.user.name,role:me.user.role,driverId:me.user.did};
+  S.loads=loads.filter(l=>l.status!=='invoiced');
+  S.fills=fills;
+  const mine=S.loads[0];
+  S.truck=trucks.find(t=>t.id===(mine?.truck_id))||trucks[0];
+  S.lastOdo=fills.length?Math.max(...fills.filter(f=>f.truck_id===S.truck?.id).map(f=>f.odometer)):S.truck?.odometer;
+}
+
+/* ---------- local mirror of the server rules (used offline) ---------- */
+const CFG={tolerancePct:8,highPct:15,criticalPct:25,pricePerLitreCap:3.60,nightFrom:22,nightTo:5};
+const SEV={crit:3,high:2,med:1,low:0,clean:-1};
+function evaluate({odometer,litres,price,at,photo}){
+  const t=S.truck,prevOdo=S.lastOdo,flags=[];
+  const r={distance:null,consumption:null,expected:null,variance:null,excess:0,cost:litres*price,flags};
+  if(prevOdo!=null&&odometer){
+    r.distance=odometer-prevOdo;
+    if(r.distance<=0) flags.push({sev:'crit',msg:`Odometer is lower than your last fill (${prevOdo.toLocaleString()} km). Check the reading.`});
+    else{
+      r.consumption=litres/r.distance*100;
+      r.expected=t.baseline_l100*r.distance/100;
+      r.variance=(r.consumption-t.baseline_l100)/t.baseline_l100*100;
+      r.excess=litres-r.expected;
+      if(r.variance>=CFG.criticalPct) flags.push({sev:'crit',msg:`${r.variance.toFixed(1)}% above the truck's rated burn — ${r.excess.toFixed(1)} L more than this trip needs.`});
+      else if(r.variance>=CFG.highPct) flags.push({sev:'high',msg:`${r.variance.toFixed(1)}% above rated. The office will ask about this one.`});
+      else if(r.variance>=CFG.tolerancePct) flags.push({sev:'med',msg:`${r.variance.toFixed(1)}% above rated — outside the ±${CFG.tolerancePct}% tolerance.`});
+    }
+  }
+  if(litres>t.tank_l*1.02) flags.push({sev:'crit',msg:`${litres} L will not fit in a ${t.tank_l} L tank.`});
+  if(price>CFG.pricePerLitreCap) flags.push({sev:'med',msg:`RM ${price.toFixed(2)} per litre is above the approved cap.`});
+  const h=new Date(at).getHours();
+  if(h>=CFG.nightFrom||h<CFG.nightTo) flags.push({sev:'low',msg:'Filled inside the night window — it will be listed for review.'});
+  if(!photo) flags.push({sev:'low',msg:'No receipt photo attached. Snap it now and the fill clears itself.'});
+  r.severity=flags.length?flags.reduce((a,f)=>SEV[f.sev]>SEV[a]?f.sev:a,'low'):'clean';
+  return r;
+}
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const n1=n=>(n||0).toLocaleString('en-MY',{minimumFractionDigits:1,maximumFractionDigits:1});
+const n0=n=>Math.round(n||0).toLocaleString('en-MY');
+const money=n=>'RM '+(n||0).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fdate=s=>new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+const ftime=s=>new Date(s).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){const e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);
+  setTimeout(()=>{e.style.opacity=0;e.style.transition='.3s';setTimeout(()=>e.remove(),300)},2400)}
+const ICON={today:'<path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>',
+ fuel:'<path d="M3 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M2 21h12M4 8h8"/><path d="M13 9h3a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
+ record:'<path d="M12 20V10M18 20V4M6 20v-4"/>'};
+const svg=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+
+/* ---------- screens ---------- */
+function render(){
+  if(!S.me&&S.demo) demo();
+  const net=navigator.onLine?(S.demo?'<span class="net off">Demo</span>':'<span class="net on">Live</span>')
+    :'<span class="net off">Offline</span>';
+  $('root').innerHTML=`
+  <div class="hdr"><h1>LOR<i>I</i>Q</h1>${net}
+    <div class="who"><b>${esc(S.me?.name.split(' ').slice(0,2).join(' ')||'Driver')}</b>${S.truck?esc(S.truck.plate):''}</div></div>
+  <div class="wrap">${({today:scrToday,fill:scrFill,record:scrRecord,login:scrLogin}[S.tab])()}</div>`;
+  $('tabs').innerHTML=S.tab==='login'?'':[['today','Today'],['fill','Log fill'],['record','My record']]
+    .map(([k,l])=>`<button class="${S.tab===k?'on':''}" onclick="goto('${k}')">${svg(k==='fill'?'fuel':k)}${l}</button>`).join('');
+  if(S.tab==='fill') setTimeout(check,50);
+}
+function goto(t){S.tab=t;S.photo=null;render();window.scrollTo(0,0)}
+
+function scrToday(){
+  const next=S.loads[0];
+  return `
+  ${next?`<div class="card">
+    <div class="eyebrow">Your next load</div>
+    <div class="load" style="margin-top:10px">
+      <div class="rt">${esc(next.origin)} → ${esc(next.destination)}</div>
+      <div class="mt">${esc(next.cargo)} · ${n1(next.weight_t)} t · ${n0(next.distance_km)} km</div>
+      <div class="mt">${next.ref} · departs ${fdate(next.depart_at)} ${ftime(next.depart_at)}</div>
+    </div>
+    <div class="grid3" style="margin:14px 0">
+      <div class="stat"><span>Distance</span><b>${n0(next.distance_km)}</b></div>
+      <div class="stat"><span>Diesel allowed</span><b>${n1(next.fuel_allowance_l||S.truck.baseline_l100*next.distance_km/100)} L</b></div>
+      <div class="stat"><span>Status</span><b style="font-size:15px">${next.status}</b></div>
+    </div>
+    <div class="grid2">
+      ${next.status==='planned'?`<button class="btn ok" onclick="setStatus('${next.id}','transit')">Start trip</button>`
+        :`<button class="btn ok" onclick="setStatus('${next.id}','delivered')">Delivered</button>`}
+      <button class="btn amber" onclick="goto('fill')">Log fill</button>
+    </div>
+    <div class="hint">Your allowance is what this truck actually burns over ${n0(next.distance_km)} km. Draw more and the office sees it the same day.</div>
+  </div>`:'<div class="card"><div class="center">No loads assigned yet.</div></div>'}
+
+  <div class="card">
+    <div class="eyebrow">Truck</div>
+    <h2>${esc(S.truck.plate)}</h2>
+    <div class="mt" style="color:var(--muted);font-size:13px">${esc(S.truck.make||'')}</div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="stat"><span>Rated burn</span><b>${n1(S.truck.baseline_l100)}</b></div>
+      <div class="stat"><span>Tank</span><b>${n0(S.truck.tank_l)} L</b></div>
+      <div class="stat"><span>Last fill odo</span><b>${n0(S.lastOdo)}</b></div>
+    </div>
+  </div>
+  ${S.loads.length>1?`<div class="card"><div class="eyebrow">Coming up</div>
+    ${S.loads.slice(1,4).map(l=>`<div class="list-item"><div>
+      <div style="font-weight:600">${esc(l.origin)} → ${esc(l.destination)}</div>
+      <div style="font-size:12.5px;color:var(--muted)">${fdate(l.depart_at)} · ${n0(l.distance_km)} km · ${esc(l.cargo||'')}</div>
+    </div></div>`).join('')}</div>`:''}
+  ${S.queue.length?`<div class="card" style="border-color:var(--diesel)">
+    <div class="eyebrow">Waiting to send</div>
+    <div style="margin-top:8px;font-size:14px">${S.queue.length} fill${S.queue.length>1?'s':''} saved on this phone. They upload when you get signal.</div>
+    <button class="btn sm amber" style="margin-top:12px" onclick="flush()">Try now</button></div>`:''}
+  ${S.demo?`<button class="btn ghost sm" onclick="goto('login')">Connect to your company server</button>`:''}`;
+}
+
+function scrFill(){
+  const now=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
+  return `
+  <div class="card">
+    <div class="eyebrow">Diesel fill · ${esc(S.truck.plate)}</div>
+    <h2 style="margin-bottom:14px">Enter what the pump shows</h2>
+    <div class="fld"><label>Odometer now (km)</label>
+      <input id="odo" inputmode="numeric" placeholder="${n0(S.lastOdo+700)}" oninput="check()">
+      <div class="hint">Last fill was ${n0(S.lastOdo)} km. Read it off the dash, not from memory.</div></div>
+    <div class="grid2">
+      <div class="fld"><label>Litres</label><input id="lit" inputmode="decimal" placeholder="0.0" oninput="check()"></div>
+      <div class="fld"><label>Price / litre</label><input id="pr" inputmode="decimal" value="3.35" oninput="check()"></div>
+    </div>
+    <div class="grid2">
+      <div class="fld"><label>Station</label><input id="stn" style="font-family:var(--body);font-size:16px" placeholder="Petronas KM32"></div>
+      <div class="fld"><label>Receipt no.</label><input id="rec" placeholder="From the slip" oninput="check()"></div>
+    </div>
+    <div class="fld"><label>Time at the pump</label><input id="at" type="datetime-local" value="${now}" style="font-size:16px" oninput="check()"></div>
+    <div class="fld"><label>Receipt photo</label>
+      <div class="shot">
+        <div id="thumb" class="ph">No<br>photo</div>
+        <div style="flex:1">
+          <button class="btn sm" onclick="document.getElementById('cam').click()">Take photo of receipt</button>
+          <div class="hint">Photo + pump reading is what clears you if the numbers are ever questioned.</div>
+        </div>
+      </div>
+      <input type="file" id="cam" accept="image/*" capture="environment" onchange="shot(this)">
+    </div>
+    <div class="fld"><label>Location</label>
+      <button class="btn sm" onclick="locate()" id="gpsBtn">${S.gps?'Location attached ✓':'Attach my location'}</button></div>
+    <div id="verdict"></div>
+    <button class="btn amber" id="submit" onclick="submitFill()">Save fill</button>
+  </div>`;
+}
+
+function bar(v){
+  if(v==null) return '';
+  const max=45,c=Math.max(-max,Math.min(max,v)),w=Math.abs(c)/max*50,left=c>=0?50:50-w;
+  const col=v>=CFG.criticalPct?'var(--hazard)':v>=CFG.highPct?'#F26A1B':v>=CFG.tolerancePct?'var(--diesel)':'var(--ok)';
+  const bw=CFG.tolerancePct/max*50;
+  return `<div class="bar"><div class="band" style="left:${50-bw}%;width:${bw*2}%"></div>
+    <i style="left:${left}%;width:${Math.max(w,.8)}%;background:${col}"></i>
+    <span style="${c>=0?`left:${50+w+1}%`:`right:${50+w+1}%`};color:${col}">${v>0?'+':''}${v.toFixed(1)}%</span></div>`;
+}
+function check(){
+  const box=$('verdict'); if(!box) return;
+  const odo=+$('odo').value,lit=+$('lit').value,price=+$('pr').value||0,at=$('at').value;
+  if(!odo||!lit){box.innerHTML=`<div class="verdict"><h3>Waiting for the numbers</h3>
+    <div style="font-size:13.5px;color:var(--muted)">Type the odometer and litres. You will see how this fill measures up before you save it.</div></div>`;return}
+  const r=evaluate({odometer:odo,litres:lit,price,at,photo:S.photo});
+  const sev=r.severity;
+  const cls=sev==='clean'||sev==='low'?'ok':SEV[sev]>=2?'bad':'warn';
+  const pill=sev==='clean'?'<span class="pill p-ok">Clean</span>'
+    :sev==='low'?'<span class="pill p-ok">Minor note</span>'
+    :SEV[sev]>=2?'<span class="pill p-bad">Will be flagged</span>'
+    :'<span class="pill p-warn">Above tolerance</span>';
+  const head=SEV[sev]>=1?'Check before you save':'This fill reconciles';
+  box.innerHTML=`<div class="verdict ${cls}"><h3>${head} ${pill}</h3>
+    <div class="grid3">
+      <div class="stat"><span>Distance</span><b>${r.distance!=null?n0(r.distance):'—'}</b></div>
+      <div class="stat"><span>Your burn</span><b>${r.consumption?n1(r.consumption):'—'}</b></div>
+      <div class="stat"><span>Allowed</span><b>${r.expected?n1(r.expected)+' L':'—'}</b></div>
+    </div>
+    ${r.variance!=null?bar(r.variance):''}
+    <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:13.5px">
+      <span style="color:var(--muted)">You pay</span><b class="num">${money(r.cost)}</b></div>
+    ${r.flags.length?`<ul>${r.flags.map(f=>`<li>${esc(f.msg)}</li>`).join('')}</ul>`:''}</div>`;
+}
+
+function shot(input){
+  const f=input.files[0]; if(!f) return;
+  const img=new Image(),url=URL.createObjectURL(f);
+  img.onload=()=>{
+    const max=1280,sc=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    S.photo=c.toDataURL('image/jpeg',.72);
+    $('thumb').outerHTML=`<img id="thumb" src="${S.photo}" alt="Receipt">`;
+    URL.revokeObjectURL(url); check(); toast('Receipt attached');
+  };
+  img.src=url;
+}
+function locate(){
+  if(!navigator.geolocation) return toast('This phone has no location');
+  $('gpsBtn').textContent='Getting location…';
+  navigator.geolocation.getCurrentPosition(p=>{
+    S.gps={lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5)};
+    $('gpsBtn').textContent='Location attached ✓'; toast('Location attached');
+  },()=>{$('gpsBtn').textContent='Location not available'},{timeout:8000});
+}
+
+async function submitFill(){
+  const odo=+$('odo').value,lit=+$('lit').value,price=+$('pr').value;
+  if(!odo||!lit||!price) return toast('Odometer, litres and price are needed');
+  const body={truck_id:S.truck.id,filled_at:new Date($('at').value).toISOString(),odometer:odo,litres:lit,
+    price_per_litre:price,station:$('stn').value,receipt_no:$('rec').value,payment_method:'Fleet card',
+    receipt_photo:S.photo,gps:S.gps,trip_id:S.loads[0]?.id};
+  const local=evaluate({odometer:odo,litres:lit,price,at:$('at').value,photo:S.photo});
+  $('submit').disabled=true;
+  if(S.demo){ done(local); return; }
+  try{
+    const r=await api('/api/fuel',{method:'POST',body:JSON.stringify(body)});
+    S.lastOdo=odo; done({...local,severity:r.severity,variance:r.variance_pct,expected:r.expected_l,distance:r.distance_km});
+  }catch(e){
+    S.queue.push(body); S.lastOdo=odo;
+    toast('No signal — saved on this phone'); done(local);
+  }
+}
+function done(r){
+  S.fills.unshift({filled_at:new Date().toISOString(),litres:+$('lit').value,distance_km:r.distance,
+    consumption_l100:r.consumption,variance_pct:r.variance,severity:r.severity,flags:[]});
+  S.photo=null;S.gps=null;S.tab='record';render();
+  toast(r.severity==='clean'?'Fill saved — reconciles cleanly':'Fill saved and flagged for review');
+}
+async function flush(){
+  if(!S.queue.length||S.demo) return;
+  const left=[];
+  for(const b of S.queue){ try{ await api('/api/fuel',{method:'POST',body:JSON.stringify(b)}) }catch(e){ left.push(b) } }
+  S.queue=left; render(); toast(left.length?`${left.length} still waiting`:'All fills uploaded');
+}
+window.addEventListener('online',flush);
+
+async function setStatus(id,status){
+  const l=S.loads.find(x=>x.id===id); if(l) l.status=status;
+  if(!S.demo){ try{ await api(`/api/trips/${id}/status`,{method:'PATCH',body:JSON.stringify({status,gps:S.gps})}) }
+    catch(e){ toast('Saved on this phone — will sync') } }
+  if(status==='delivered') S.loads=S.loads.filter(x=>x.id!==id);
+  render(); toast(status==='transit'?'Trip started — drive safe':'Delivery recorded');
+}
+
+function scrRecord(){
+  const mine=S.fills.slice(0,12);
+  const flagged=mine.filter(f=>f.severity&&f.severity!=='clean'&&f.severity!=='low').length;
+  const score=S.me.score??Math.max(0,100-flagged*12);
+  const band=score>=90?'Clean':score>=75?'Watch':score>=60?'Suspect':'High risk';
+  const col=score>=90?'var(--ok)':score>=75?'var(--diesel)':'var(--hazard)';
+  return `<div class="card">
+    <div class="eyebrow">Fuel record</div>
+    <div class="row" style="align-items:flex-end;gap:14px;margin-top:6px">
+      <div class="big" style="color:${col}">${score}</div>
+      <div style="padding-bottom:6px"><span class="pill ${score>=90?'p-ok':score>=75?'p-warn':'p-bad'}">${band}</span></div>
+    </div>
+    <div class="meter"><i style="width:${score}%;background:${col}"></i></div>
+    <div class="hint">${score>=90?'Your fills line up with the distance you cover. Nothing outstanding.'
+      :score>=75?'A few fills came in above what this truck burns. Keep the receipts and the odometer readings tight.'
+      :'Several fills are above what this truck burns. Talk to the office before the next fill — a mechanical fault will show up the same way as a shortage.'}</div>
+  </div>
+  <div class="card"><div class="eyebrow">Your last fills</div>
+    ${mine.length?mine.map(f=>{
+      const v=f.variance_pct,c=v==null?'var(--muted)':v>=CFG.criticalPct?'var(--hazard)':v>=CFG.tolerancePct?'var(--diesel)':'var(--ok)';
+      return `<div class="list-item">
+        <div style="flex:1"><div style="font-weight:600">${fdate(f.filled_at)} · ${n1(f.litres)} L</div>
+          <div style="font-size:12.5px;color:var(--muted)">${f.distance_km?n0(f.distance_km)+' km · '+n1(f.consumption_l100)+' L/100km':'baseline fill'}</div></div>
+        <div class="num" style="color:${c};font-weight:600">${v!=null?(v>0?'+':'')+n1(v)+'%':'—'}</div></div>`}).join('')
+      :'<div class="center">No fills logged yet.</div>'}
+  </div>
+  ${!S.demo?'<button class="btn ghost sm" onclick="signOut()">Sign out</button>':''}`;
+}
+
+function scrLogin(){
+  return `<div class="card">
+    <h2>Connect to your company</h2>
+    <div class="hint" style="margin-bottom:16px">Ask the office for the server address and your login.</div>
+    <div class="fld"><label>Server address</label><input id="lApi" style="font-size:15px" placeholder="https://api.yourcompany.com" value="${esc(S.api)}"></div>
+    <div class="fld"><label>Email</label><input id="lEmail" style="font-size:16px;font-family:var(--body)" placeholder="you@company.com" autocomplete="username"></div>
+    <div class="fld"><label>Password</label><input id="lPass" type="password" style="font-size:16px;font-family:var(--body)" autocomplete="current-password"></div>
+    <button class="btn amber" onclick="signIn()">Sign in</button>
+    <button class="btn ghost sm" style="margin-top:10px" onclick="goto('today')">Stay in demo mode</button>
+  </div>`;
+}
+async function signIn(){
+  S.api=$('lApi').value.trim(); store.set(API_KEY,S.api);
+  try{
+    const r=await fetch(S.api.replace(/\/$/,'')+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:$('lEmail').value.trim(),password:$('lPass').value})}).then(x=>x.json());
+    if(!r.token) throw new Error(r.error||'Sign in failed');
+    store.set(TOK,r.token); S.demo=false; await loadLive(); S.tab='today'; render(); toast('Signed in');
+  }catch(e){ toast(e.message) }
+}
+function signOut(){store.del(TOK);S.demo=true;S.me=null;S.tab='today';demo();render()}
+
+(async function boot(){
+  if(!S.demo&&S.api){ try{ await loadLive() }catch(e){ S.demo=true } }
+  render();
+  if(!S.demo) flush();
+})();
+</script>
+</body>
+</html>
